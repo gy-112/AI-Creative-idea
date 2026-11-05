@@ -1,0 +1,52 @@
+{
+  "request": {
+    "model": "gpt-5.4-mini-2026-03-17",
+    "instructions": "Evaluate only the person's pose against the required pose features in the still photo. Ignore the background, landmarks, location, identity, clothing, and props. Return reasonCode PASS when both arms are visible enough to judge, even if the pose is incorrect. Use INSUFFICIENT_VIEW if the arms cannot be judged. Return poseScore as an integer from 0 to 100 based on how many required pose features match. Use 0 when the pose cannot be judged.",
+    "reasoning": {
+      "effort": "none"
+    },
+    "store": false,
+    "max_output_tokens": 200,
+    "text": {
+      "format": {
+        "type": "json_schema",
+        "name": "seoulgo_photo_verification",
+        "strict": true,
+        "schema": {
+          "type": "object",
+          "properties": {
+            "reasonCode": {
+              "type": "string",
+              "enum": [
+                "PASS",
+                "INSUFFICIENT_VIEW"
+              ]
+            },
+            "poseScore": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "reasonCode",
+            "poseScore"
+          ],
+          "additionalProperties": false
+        }
+      }
+    }
+  },
+  "feedback": {
+    "PASS": {
+      "ko": "사진에서 미션 장소를 확인했어요.",
+      "en": "The photo shows the required landmark."
+    },
+    "INSUFFICIENT_VIEW": {
+      "ko": "장소 전체와 미션에 필요한 부분이 잘 보이게 다시 찍어주세요.",
+      "en": "Retake the photo so the whole landmark and the required features are visible."
+    },
+    "WRONG_LANDMARK": {
+      "ko": "미션에 표시된 장소를 찍어 다시 올려주세요.",
+      "en": "Upload a photo of the landmark shown in the mission."
+    }
+  }
+}
