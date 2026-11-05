@@ -199,7 +199,7 @@ function renderLandmark() {
   const l = currentLandmark;
   if (!l) return '';
   return `
-  <div class="h-full flex flex-col rise">
+  <div class="landmark-guide rise">
     <!-- 상단: 뒤로가기 + 장소 이름 -->
     <div class="flex items-center gap-3 px-4 pt-3 pb-2">
       <button id="lmBack" class="w-9 h-9 rounded-full bg-white shadow-sm text-slate-600" aria-label="지도로 돌아가기">←</button>
@@ -210,24 +210,24 @@ function renderLandmark() {
     </div>
 
     <!-- 해치(왼쪽) + 말풍선(오른쪽) : 크게 -->
-    <div class="flex-1 min-h-0 flex items-center gap-2 px-4">
-      <img src="${GUIDE_IMG}" alt="해치" class="w-36 h-36 object-contain shrink-0 float" onerror="this.style.visibility='hidden'">
-      <div class="bubble flex-1 bg-white rounded-3xl p-4 shadow-md text-[15px] leading-relaxed text-slate-700">
+    <div class="landmark-intro">
+      <img src="${GUIDE_IMG}" alt="해치" class="landmark-intro-avatar object-contain shrink-0 float" onerror="this.style.visibility='hidden'">
+      <div class="bubble flex-1 bg-white rounded-2xl p-3 shadow-sm text-sm leading-relaxed text-slate-700">
         <p id="landmarkGreeting" class="text-[17px] font-black text-slate-800 mb-1.5">${l.name}에 온 걸 환영해!</p>
         <p id="landmarkDescription">${LANDMARK_INFO[l.id] || l.desc}</p>
         <a id="landmarkSource" hidden class="mt-1 text-xs text-blue-700 underline"
            target="_blank" rel="noopener noreferrer">${lang === 'en' ? 'Official tourism source' : '공식 관광 자료'}</a>
+        <span id="landmarkSpeech"></span>
       </div>
     </div>
 
-    <!-- 채팅 : 높이 고정 -->
-    <div class="h-[180px] shrink-0 mx-4 mt-3 bg-white rounded-2xl shadow-sm flex flex-col">
-      <div id="chatLog" class="flex-1 min-h-0 overflow-y-auto p-3 space-y-2">
-        <div class="chat-msg bot">궁금한 게 있으면 뭐든 물어봐!</div>
+    <!-- 채팅 -->
+    <div class="guide-chat bg-white rounded-2xl shadow-sm">
+      <div id="chatLog" class="guide-chat-log" role="log" aria-label="해치 대화">
       </div>
       <form id="chatForm" class="flex gap-2 p-2 border-t border-slate-100">
-        <input id="chatInput" maxlength="500" class="flex-1 bg-slate-100 rounded-full px-4 py-2 text-sm outline-none" placeholder="이 장소에 대해 물어보세요" autocomplete="off">
-        <button class="bg-blue-700 text-white rounded-full px-4 text-sm font-bold">전송</button>
+        <input id="chatInput" maxlength="500" class="min-w-0 flex-1 bg-slate-100 rounded-full px-4 py-2 text-sm outline-none" placeholder="이 장소에 대해 물어보세요" autocomplete="off">
+        <button type="submit" class="bg-blue-700 text-white rounded-full px-4 text-sm font-bold disabled:opacity-50">전송</button>
       </form>
     </div>
 
@@ -237,7 +237,7 @@ function renderLandmark() {
     </div>
   </div>`;
 }
-async function guideRequest(url, options) {
+async function authenticatedRequest(url, options = {}) {
   const token = accessToken;
   const response = await fetch(url, {
     ...options,
@@ -249,7 +249,7 @@ async function guideRequest(url, options) {
   }
   const body = await response.json().catch(() => null);
   if (!response.ok || !body?.success) {
-    throw new Error(body?.code || 'GUIDE_REQUEST_FAILED');
+    throw new Error(body?.error?.code || body?.code || 'API_REQUEST_FAILED');
   }
   return body.data;
 }
@@ -259,7 +259,7 @@ async function loadLandmarkDescription(landmark) {
   const greeting = $('#landmarkGreeting');
   const source = $('#landmarkSource');
   try {
-    const data = await guideRequest(landmarkGuideUrl(landmark), { headers: { 'Accept-Language': lang } });
+    const data = await authenticatedRequest(landmarkGuideUrl(landmark), { headers: { 'Accept-Language': lang } });
     if (!description.isConnected) return;
     greeting.textContent = data.characterComment;
     description.textContent = data.description;
@@ -271,22 +271,107 @@ async function loadLandmarkDescription(landmark) {
 }
 
 async function askGuide(landmark, question) {
-  const data = await guideRequest(landmarkGuideUrl(landmark) + '/questions', {
+  const data = await authenticatedRequest(landmarkGuideUrl(landmark) + '/questions', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ question, language: lang }),
   });
-  return data.answer;
+  return data;
 }
 
-function addChat(text, who) {
+let activeGuideSpeech = null;
+
+function stopGuideSpeech() {
+  if (!activeGuideSpeech) return;
+  activeGuideSpeech.button.setAttribute('aria-pressed', 'false');
+  activeGuideSpeech = null;
+  window.speechSynthesis.cancel();
+}
+
+function guideSpeechButton(readText) {
+  if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return null;
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'guide-speech';
+  button.textContent = '🔊';
+  const label = lang === 'en' ? 'Read aloud' : '읽어주기';
+  button.title = label;
+  button.setAttribute('aria-label', label);
+  button.setAttribute('aria-pressed', 'false');
+  button.onclick = () => {
+    const wasPlaying = activeGuideSpeech?.button === button;
+    stopGuideSpeech();
+    if (wasPlaying) return;
+
+    const utterance = new window.SpeechSynthesisUtterance(readText());
+    utterance.lang = lang === 'en' ? 'en-US' : 'ko-KR';
+    const finish = () => {
+      if (activeGuideSpeech?.utterance !== utterance) return;
+      button.setAttribute('aria-pressed', 'false');
+      activeGuideSpeech = null;
+    };
+    utterance.onend = finish;
+    utterance.onerror = finish;
+    activeGuideSpeech = { utterance, button };
+    button.setAttribute('aria-pressed', 'true');
+    window.speechSynthesis.speak(utterance);
+  };
+  return button;
+}
+
+function guideSource(url, title) {
+  try {
+    const address = new URL(url);
+    if (!['http:', 'https:'].includes(address.protocol) || address.username || address.password) return null;
+    const link = document.createElement('a');
+    link.href = address.href;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.className = 'guide-citation';
+    link.textContent = lang === 'en' ? 'Source' : '출처';
+    if (title) link.title = title;
+    return link;
+  } catch {
+    return null;
+  }
+}
+
+function addChat(text, who, { citations = [], sourceRef, readAloud = false } = {}) {
   const log = $('#chatLog');
-  if (!log) return;
-  const div = document.createElement('div');
-  div.className = `chat-msg ${who}`;
-  div.textContent = text;
-  log.appendChild(div);
+  const message = document.createElement('div');
+  message.className = `chat-msg ${who}`;
+  if (who === 'bot') {
+    const label = document.createElement('span');
+    label.className = 'guide-speaker';
+    label.textContent = lang === 'en' ? 'Haechi' : '해치';
+    message.append(label);
+  }
+
+  const body = document.createElement('div');
+  let offset = 0;
+  const ordered = [...citations].sort((a, b) => a.endIndex - b.endIndex);
+  for (const citation of ordered) {
+    const end = citation.endIndex;
+    if (!Number.isInteger(end) || end < offset || end > text.length) continue;
+    const link = guideSource(citation.url, citation.title);
+    if (!link) continue;
+    body.append(text.slice(offset, end), link);
+    offset = end;
+  }
+  body.append(text.slice(offset));
+  if (sourceRef) {
+    const source = guideSource(sourceRef);
+    if (source) {
+      source.textContent = lang === 'en' ? 'Official guide' : '공식 안내';
+      body.append(source);
+    }
+  }
+  message.append(body);
+  const speech = readAloud ? guideSpeechButton(() => text) : null;
+  if (speech) message.append(speech);
+  log.append(message);
   log.scrollTop = log.scrollHeight;
+  return message;
 }
 
 function bindLandmark() {
@@ -295,41 +380,75 @@ function bindLandmark() {
   const input = $('#chatInput');
   const send = form.querySelector('button');
   $('#lmBack').onclick = () => go('map');
-  $('#missionStart').onclick = () => startMission(landmark);
+  $('#missionStart').onclick = () => {
+    stopGuideSpeech();
+    startMission(landmark);
+  };
+  const introSpeech = guideSpeechButton(() =>
+    $('#landmarkGreeting').textContent + ' ' + $('#landmarkDescription').textContent);
+  if (introSpeech) $('#landmarkSpeech').append(introSpeech);
+  addChat(lang === 'en' ? 'Ask me anything about this place!' : '궁금한 게 있으면 뭐든 물어봐!', 'bot');
   void loadLandmarkDescription(landmark);
 
-  form.onsubmit = async e => {
-    e.preventDefault();
-    const question = input.value.trim();
-    if (!question || send.disabled) return;
-    input.value = '';
+  async function submitQuestion(question, retryMessage) {
+    if (!form.isConnected || send.disabled) return;
+    if (retryMessage) retryMessage.remove();
+    else addChat(question, 'me');
     send.disabled = true;
-    addChat(question, 'me');
+    const pending = addChat(lang === 'en' ? 'Haechi is preparing an answer…' : '해치가 답변을 준비 중이에요…', 'bot');
+
     try {
-      const answer = await askGuide(landmark, question);
-      if (form.isConnected) addChat(answer, 'bot');
+      const data = await askGuide(landmark, question);
+      if (form.isConnected) {
+        pending.remove();
+        addChat(data.answer, 'bot', {
+          citations: data.citations,
+          sourceRef: data.status === 'NO_SOURCE' ? data.sourceRef : null,
+          readAloud: true,
+        });
+      }
     } catch (error) {
-      if (!form.isConnected) return;
+      if (!form.isConnected || error.message === 'UNAUTHORIZED') return;
+      pending.remove();
       const unavailable = error.message === 'GUIDE_NOT_CONFIGURED';
       const message = unavailable
         ? (lang === 'en' ? 'The guide server needs its AI settings.' : '서버에 AI 가이드 설정이 필요해요.')
         : (lang === 'en' ? 'The guide could not answer. Please try again.' : '답변을 가져오지 못했어요. 다시 시도해 주세요.');
-      addChat(message, 'bot');
-      if (!input.value) input.value = question;
+      const failed = addChat(message, 'bot');
+      if (!unavailable) {
+        const retry = document.createElement('button');
+        retry.type = 'button';
+        retry.className = 'guide-retry';
+        retry.textContent = lang === 'en' ? 'Try again' : '다시 시도';
+        retry.onclick = () => void submitQuestion(question, failed);
+        failed.append(retry);
+        $('#chatLog').scrollTop = $('#chatLog').scrollHeight;
+      }
     } finally {
+      pending.remove();
       send.disabled = false;
     }
+  }
+
+  form.onsubmit = e => {
+    e.preventDefault();
+    const question = input.value.trim();
+    if (!question || send.disabled) return;
+    input.value = '';
+    void submitQuestion(question);
   };
 }
 
 // ═════════════════ 미션 (시연: 강남 = 사진, 광화문 = 음성) ═════════════════
 const MISSIONS = {
   gangnam: {
+    id: 901,
     type: 'photo',
     example: 'character_image/gangnam_pose.png',      // 예시 포즈 사진 (파일 넣으면 자동 표시)
-    guides: ['랜드마크가 함께 보이게 찍어주세요', '예시 사진과 같은 포즈를 취해주세요', '앱 카메라로만 촬영할 수 있어요'],
+    guides: ['팔과 상체가 잘 보이게 찍어주세요', '예시 사진과 같은 포즈를 취해주세요', '앱 카메라로만 촬영할 수 있어요'],
   },
   gwanghwamun: {
+    id: 102,
     type: 'voice',
     line:  '신에게는 아직 열두 척의 배가 남아 있사옵니다',
     roman: 'Sinegeneun ajik yeoldu cheogui baega nama itsaomnida',
@@ -382,7 +501,7 @@ function renderMission() {
         <div class="border-t border-dashed border-slate-200"></div>
         <p class="text-[15px] text-slate-500 italic" lang="en">${m.roman}</p>
       </div>
-      <p class="text-center text-xs text-slate-400">발음 정확도 ${PASS_SCORE}% 이상이면 성공!</p>
+      <p class="text-center text-xs text-slate-400">문장 일치도 ${PASS_SCORE}% 이상이면 성공!</p>
     </div>
     <div class="flex flex-col items-center gap-2 pb-6 pt-2">
       <button id="micBtn" class="mic-btn" aria-label="녹음 시작">🎙️</button>
@@ -392,18 +511,86 @@ function renderMission() {
 }
 function bindMission() {
   $('#msBack').onclick = () => go('landmark');
-  const m = MISSIONS[currentLandmark.id];
-  if (m.type === 'photo') $('#shootStart').onclick = () => openCamera(m);
-  else $('#micBtn').onclick = toggleRecord;
+  const landmark = currentLandmark;
+  const mission = MISSIONS[landmark.id];
+  if (mission.type === 'photo') $('#shootStart').onclick = () => openCamera(landmark, mission);
+  else $('#micBtn').onclick = () => toggleRecord(landmark, mission);
+}
+
+async function submitMission(mission, file, filename, isCurrent) {
+  const token = accessToken;
+  if (!file?.size) throw new Error('EMPTY_MISSION_FILE');
+  const form = new FormData();
+  form.append(mission.type === 'photo' ? 'image' : 'audio', file, filename);
+
+  const { gpsRequired } = await authenticatedRequest(API_BASE + '/missions/location-settings');
+  if (!isCurrent() || accessToken !== token) return null;
+  if (gpsRequired) {
+    if (!store('locationAgreed')) {
+      askLocationConsent();
+      throw new Error('MISSION_LOCATION_CONSENT_REQUIRED');
+    }
+    if (!navigator.geolocation) throw new Error('MISSION_LOCATION_UNAVAILABLE');
+    const { coords } = await new Promise((resolve, reject) => {
+      navigator.geolocation.getCurrentPosition(resolve, () => reject(new Error('MISSION_LOCATION_UNAVAILABLE')),
+        { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 });
+    });
+    form.append('latitude', String(coords.latitude));
+    form.append('longitude', String(coords.longitude));
+  }
+
+  if (!isCurrent() || accessToken !== token) return null;
+  return authenticatedRequest(`${API_BASE}/missions/${mission.id}/${mission.type}`, {
+    method: 'POST',
+    headers: { 'Accept-Language': lang },
+    body: form,
+  });
+}
+
+function missionError(error) {
+  const messages = {
+    MISSION_LOCATION_CONSENT_REQUIRED: '위치 이용에 동의한 뒤 다시 시도해 주세요.',
+    MISSION_LOCATION_UNAVAILABLE: '브라우저 위치 권한과 위치 설정을 확인해 주세요.',
+    INVALID_LOCATION: '현재 위치를 확인한 뒤 다시 시도해 주세요.',
+    MISSION_LOCATION_NOT_CONFIGURED: '서버에 미션 기준 위치가 설정되지 않았어요.',
+    EMPTY_MISSION_FILE: '촬영 또는 녹음 파일이 비어 있어요. 다시 시도해 주세요.',
+    UNSUPPORTED_MEDIA_TYPE: '서버에서 지원하지 않는 파일 형식이에요.',
+    FILE_TOO_LARGE: '파일이 너무 커요. 다시 촬영하거나 짧게 녹음해 주세요.',
+    MISSION_NOT_FOUND: '서버에서 미션을 찾지 못했어요.',
+  };
+  if (error.message !== 'UNAUTHORIZED') {
+    toast(messages[error.message] || '미션을 확인하지 못했어요. 다시 시도해 주세요.');
+  }
 }
 
 // ── 사진 미션: 카메라 ──
 let camStream = null;
-function stopCam() { camStream?.getTracks().forEach(t => t.stop()); camStream = null; }
-async function openCamera(m) {
-  try { camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }); }
-  catch { camStream = null; toast('카메라를 사용할 수 없어 시연 모드로 진행해요'); }
+let cameraOverlay = null;
+function stopCam() {
+  camStream?.getTracks().forEach(track => track.stop());
+  camStream = null;
+  cameraOverlay?.remove();
+  cameraOverlay = null;
+}
+async function openCamera(landmark, mission) {
+  const start = $('#shootStart');
+  if (!start || start.disabled) return;
+  start.disabled = true;
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+  } catch {
+    if (start.isConnected) toast('카메라 권한을 확인해 주세요.');
+    start.disabled = false;
+    return;
+  }
+  if (!start.isConnected || !accessToken) {
+    stream.getTracks().forEach(track => track.stop());
+    return;
+  }
+  camStream = stream;
   const cam = document.createElement('div');
+  cameraOverlay = cam;
   cam.className = 'absolute inset-0 z-[1100] bg-black flex flex-col';
   cam.innerHTML = `
     <div class="flex items-center justify-between px-5 pt-10 pb-3 text-white">
@@ -411,96 +598,161 @@ async function openCamera(m) {
       <span class="text-sm font-bold">사진 미션 촬영</span>
       <span class="w-8"></span>
     </div>
-    <div class="relative flex-1 mx-3 rounded-3xl overflow-hidden bg-slate-800 flex items-center justify-center">
+    <div class="relative flex-1 mx-3 rounded-3xl overflow-hidden bg-slate-800">
       <video class="absolute inset-0 w-full h-full object-cover" autoplay playsinline muted></video>
-      ${camStream ? '' : '<span class="text-slate-400 text-sm">카메라 미리보기</span>'}
       <div class="cam-ref">
-        <img src="${m.example}" alt="" onerror="this.remove()">
+        <img src="${mission.example}" alt="" onerror="this.remove()">
         <span>예시 포즈</span>
       </div>
     </div>
     <div class="flex items-center justify-center py-8">
-      <button class="cam-shot w-[76px] h-[76px] rounded-full bg-white border-[6px] border-slate-500 active:scale-95 transition" aria-label="촬영"></button>
+      <button class="cam-shot w-[76px] h-[76px] rounded-full bg-white border-[6px] border-slate-500" aria-label="촬영"></button>
     </div>`;
   $('.phone').appendChild(cam);
-  if (camStream) cam.querySelector('video').srcObject = camStream;
-  cam.querySelector('.cam-cancel').onclick = () => { stopCam(); cam.remove(); };
-  cam.querySelector('.cam-shot').onclick = async () => {
-    const v = cam.querySelector('video'), c = document.createElement('canvas');
-    c.width = v.videoWidth || 640; c.height = v.videoHeight || 480;
-    c.getContext('2d').drawImage(v, 0, 0);
-    const photo = await new Promise(r => c.toBlob(r, 'image/jpeg', .85));
-    stopCam(); cam.remove();
-    const wait = openModal(`<div class="text-center py-6"><div class="spinner mx-auto"></div><p class="mt-4 font-bold text-slate-700">AI가 사진을 확인하고 있어요…</p></div>`);
-    const res = await verifyPhoto(currentLandmark, photo);
-    wait.remove();
-    showMissionResult(res.success, null, () => openCamera(m));
+  const video = cam.querySelector('video');
+  video.srcObject = stream;
+  cam.querySelector('.cam-cancel').onclick = () => { stopCam(); start.disabled = false; };
+  const shot = cam.querySelector('.cam-shot');
+  shot.onclick = async () => {
+    if (!video.videoWidth || !video.videoHeight) return toast('카메라 준비 후 다시 눌러 주세요.');
+    shot.disabled = true;
+    let wait;
+    try {
+      const canvas = document.createElement('canvas');
+      const ratio = Math.min(1, 1280 / Math.max(video.videoWidth, video.videoHeight));
+      canvas.width = Math.round(video.videoWidth * ratio);
+      canvas.height = Math.round(video.videoHeight * ratio);
+      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+      const photo = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', .85));
+      if (cameraOverlay !== cam) return;
+      stopCam();
+      wait = openModal('<div class="text-center py-6 font-bold">AI가 사진을 확인하고 있어요…</div>');
+      const result = await submitMission(mission, photo, 'mission.jpg', () => start.isConnected);
+      if (result && start.isConnected && accessToken) {
+        showMissionResult(landmark, mission, result, () => openCamera(landmark, mission));
+      }
+    } catch (error) {
+      if (start.isConnected) missionError(error);
+    } finally {
+      if (cameraOverlay === cam) stopCam();
+      wait?.remove();
+      if (!cameraOverlay) start.disabled = false;
+    }
   };
-}
-// TODO: 백엔드 연결 시 POST /api/missions/verify-photo 호출로 교체
-async function verifyPhoto(landmark, photo) {
-  await new Promise(r => setTimeout(r, 1500));
-  return { success: true };
 }
 
 // ── 음성 미션: 녹음 ──
-let recorder = null, recStart = 0;
-async function toggleRecord() {
-  const btn = $('#micBtn'), label = $('#micLabel');
-  if (recorder) { recorder.stop(); return; }
-  let stream = null;
-  try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch {}
-  const chunks = [];
-  recStart = Date.now();
-  if (stream && window.MediaRecorder) {
-    recorder = new MediaRecorder(stream);
-    recorder.ondataavailable = e => chunks.push(e.data);
-  } else {
-    recorder = { stop() { this.onstop(); } };   // 마이크가 없을 때 시연용
-  }
-  recorder.onstop = async () => {
-    stream?.getTracks().forEach(t => t.stop());
-    recorder = null;
-    btn.classList.remove('rec'); label.textContent = '분석 중…';
-    const res = await verifyVoice(currentLandmark, new Blob(chunks, { type: 'audio/webm' }), Date.now() - recStart);
-    label.textContent = '눌러서 녹음 시작';
-    showMissionResult(res.score >= PASS_SCORE, res.score, () => {});
-  };
-  recorder.start?.();
-  btn.classList.add('rec'); label.textContent = '녹음 중… 다 읽으면 다시 누르세요';
+let activeRecording = null;
+function cancelMissionRecording() {
+  if (!activeRecording) return;
+  const recording = activeRecording;
+  activeRecording = null;
+  if (recording.media.state !== 'inactive') recording.media.stop();
+  recording.stream.getTracks().forEach(track => track.stop());
 }
-// TODO: 백엔드 연결 시 POST /api/missions/verify-voice 호출로 교체
-// 지금은 시연용: 2초 이상 녹음하면 성공(92%), 너무 짧으면 실패(64%)
-async function verifyVoice(landmark, audio, durationMs) {
-  await new Promise(r => setTimeout(r, 1200));
-  return { score: durationMs >= 2000 ? 92 : 64 };
+
+async function toggleRecord(landmark, mission) {
+  const button = $('#micBtn');
+  if (!button || button.disabled) return;
+  const label = $('#micLabel');
+  if (activeRecording) {
+    button.disabled = true;
+    activeRecording.media.stop();
+    return;
+  }
+  const format = [
+    { mimeType: 'audio/webm', filename: 'mission.webm' },
+    { mimeType: 'audio/mp4', filename: 'mission.m4a' },
+  ].find(({ mimeType }) => window.MediaRecorder?.isTypeSupported(mimeType));
+  if (!format) return toast('이 브라우저에서는 지원되는 형식으로 녹음할 수 없어요.');
+
+  button.disabled = true;
+  let stream;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    if (!button.isConnected || !accessToken) {
+      stream.getTracks().forEach(track => track.stop());
+      return;
+    }
+    const media = new MediaRecorder(stream, { mimeType: format.mimeType });
+    const recording = { media, stream };
+    const chunks = [];
+    const reset = () => {
+      button.classList.remove('rec');
+      button.disabled = false;
+      label.textContent = '눌러서 녹음 시작';
+    };
+    media.ondataavailable = event => { if (event.data.size) chunks.push(event.data); };
+    media.onerror = () => {
+      if (activeRecording !== recording) return;
+      cancelMissionRecording();
+      reset();
+      toast('녹음 중 오류가 발생했어요. 다시 시도해 주세요.');
+    };
+    media.onstop = async () => {
+      stream.getTracks().forEach(track => track.stop());
+      if (activeRecording !== recording) return;
+      activeRecording = null;
+      if (!button.isConnected || !accessToken) return;
+      button.classList.remove('rec');
+      label.textContent = '분석 중…';
+      try {
+        const audio = new Blob(chunks, { type: media.mimeType || format.mimeType });
+        const result = await submitMission(mission, audio, format.filename, () => button.isConnected);
+        if (result && button.isConnected && accessToken) {
+          showMissionResult(landmark, mission, result, () => toggleRecord(landmark, mission));
+        }
+      } catch (error) {
+        if (button.isConnected) missionError(error);
+      } finally {
+        reset();
+      }
+    };
+    media.start();
+    activeRecording = recording;
+    button.classList.add('rec');
+    label.textContent = '녹음 중… 다 읽으면 다시 누르세요';
+  } catch {
+    stream?.getTracks().forEach(track => track.stop());
+    if (button.isConnected) toast('마이크 권한과 연결을 확인해 주세요.');
+  } finally {
+    button.disabled = false;
+  }
 }
 
 // ── 결과 팝업 ──
-function showMissionResult(success, score, retry) {
-  const l = currentLandmark;
-  if (success) GOT.add(l.id);                       // 뱃지 지급
-  const scoreRing = score === null ? '' : `
-    <p class="text-xs font-bold text-slate-500 mb-2">발음 정확도</p>
-    <div class="score-ring ${success ? 'ok' : 'ng'}"><span>${score}%</span></div>`;
+function showMissionResult(landmark, mission, result, retry) {
+  const passed = result.result === 'PASSED';
+  const photo = mission.type === 'photo';
+  const score = photo ? result.poseScore : result.accuracyScore;
+  const feedback = photo ? result.feedback : result.feedback?.summary;
+  if (passed) GOT.add(landmark.id);
+  const scoreRing = Number.isFinite(score) ? `
+    <p class="text-xs font-bold text-slate-500 mb-2">${photo ? '포즈 점수' : '문장 일치도'}</p>
+    <div class="score-ring ${passed ? 'ok' : 'ng'}"><span>${score}%</span></div>` : '';
   const m = openModal(`
     <div class="text-center">
+      <p class="text-xs font-semibold text-slate-500 mb-2">${lang === 'en' ? 'Server result' : '서버 판정 결과'}</p>
       ${scoreRing}
-      ${score === null ? `<div class="text-6xl mb-2">${success ? '🎉' : '😢'}</div>` : ''}
-      <p class="text-3xl font-black ${success ? 'text-blue-700' : 'text-slate-700'} mt-2">${success ? '미션 성공!' : '미션 실패'}</p>
-      ${success ? `
-        <div class="mt-5 flex flex-col items-center">
-          <div class="badge-circle on !w-20 !h-20 badge-pop">${badgeImg(l, '')}</div>
-          <p class="mt-3 font-bold text-slate-800">${l.name} 뱃지를 획득했어요!</p>
-          <p class="text-xs text-slate-500 mt-1">컬렉션에서 확인할 수 있어요</p>
+      <p class="text-3xl font-black ${passed ? 'text-blue-700' : 'text-slate-700'} mt-2">${passed ? '미션 성공!' : '미션 실패'}</p>
+      <p class="mission-feedback text-sm text-slate-500 mt-2"></p>
+      <p class="mission-transcript text-xs text-slate-500 mt-2" hidden></p>
+      ${passed ? `
+        <div class="mt-4 flex flex-col items-center gap-2">
+          <div class="badge-circle on !w-20 !h-20 badge-pop">${badgeImg(landmark, '')}</div>
+          <p class="font-bold text-slate-800">${landmark.name} 뱃지를 획득했어요!</p>
         </div>
-        <button class="go-col mt-6 w-full bg-blue-700 text-white rounded-xl py-3 font-bold">컬렉션 보기</button>
-        <button class="close mt-2 w-full text-slate-500 py-2 text-sm">닫기</button>`
-      : `
-        <p class="text-sm text-slate-500 mt-2">${score === null ? '랜드마크와 포즈가 잘 보이게 다시 찍어보세요' : '다시 한번 해보세요!'}</p>
-        <button class="retry mt-6 w-full bg-blue-700 text-white rounded-xl py-3 font-bold">${score === null ? '다시 촬영하기' : '다시 녹음하기'}</button>
-        <button class="close mt-2 w-full text-slate-500 py-2 text-sm">나중에 하기</button>`}
+        <button class="go-col mt-4 w-full bg-blue-700 text-white rounded-xl py-3 font-bold">컬렉션 보기</button>` : ''}
+      ${!passed && result.retryAvailable ? `
+        <button class="retry mt-4 w-full bg-blue-700 text-white rounded-xl py-3 font-bold">${photo ? '다시 촬영하기' : '다시 녹음하기'}</button>` : ''}
+      <button class="close mt-2 w-full text-slate-500 py-2 text-sm">닫기</button>
     </div>`);
+  m.querySelector('.mission-feedback').textContent = feedback || '';
+  if (!photo && result.recognizedText) {
+    const transcript = m.querySelector('.mission-transcript');
+    transcript.textContent = (lang === 'en' ? 'Recognized: ' : '인식한 문장: ') + result.recognizedText;
+    transcript.hidden = false;
+  }
   m.querySelector('.go-col')?.addEventListener('click', () => { m.remove(); go('collection'); });
   m.querySelector('.retry')?.addEventListener('click', () => { m.remove(); retry(); });
 }
@@ -802,6 +1054,8 @@ const PAGES = {
 const BINDS = { home: bindHome, map: bindMap, landmark: bindLandmark, mission: bindMission, collection: bindCollection, settings: bindSettings };
 
 function go(tab) {
+  stopGuideSpeech();
+  cancelMissionRecording();
   if (leafletMap) { leafletMap.remove(); leafletMap = null; }
   stopCam();
   const activeTab = (tab === 'landmark' || tab === 'mission') ? 'map' : tab;
@@ -877,6 +1131,9 @@ function askLocationConsent() {
   };
 }
 function showLogin() {
+  stopGuideSpeech();
+  stopCam();
+  cancelMissionRecording();
   accessToken = '';
   $('#mainScreen').classList.replace('flex', 'hidden');
   $('#loginScreen').classList.remove('hidden');
@@ -950,7 +1207,7 @@ const EN = {
   '사진 미션': 'Photo mission', '음성 미션': 'Voice mission', '사진 미션 촬영': 'Photo mission',
   '사진과 같은 포즈로': 'Strike the same pose', '인증샷을 찍어보세요!': 'and take a photo!',
   '예시 포즈 사진': 'Example pose', '예시 포즈': 'Example',
-  '랜드마크가 함께 보이게 찍어주세요': 'Make sure the landmark is in the shot',
+  '팔과 상체가 잘 보이게 찍어주세요': 'Make sure the landmark is in the shot',
   '예시 사진과 같은 포즈를 취해주세요': 'Copy the pose in the example photo',
   '앱 카메라로만 촬영할 수 있어요': 'Photos can only be taken with the in-app camera',
   '📷 촬영 시작': '📷 Start camera', '카메라 미리보기': 'Camera preview',
@@ -958,7 +1215,7 @@ const EN = {
   'AI가 사진을 확인하고 있어요…': 'AI is checking your photo…',
   '아래 문장을 소리 내어': 'Read the sentence below', '따라 읽어보세요!': 'out loud!',
   '눌러서 녹음 시작': 'Tap to record', '녹음 중… 다 읽으면 다시 누르세요': 'Recording… tap again when done',
-  '분석 중…': 'Analyzing…', '발음 정확도': 'Pronunciation accuracy',
+  '분석 중…': 'Analyzing…', '문장 일치도': 'Sentence match', '포즈 점수': 'Pose score',
   '미션 성공!': 'Mission complete!', '미션 실패': 'Mission failed',
   '컬렉션에서 확인할 수 있어요': 'Check it in your Collection', '컬렉션 보기': 'View collection',
   '랜드마크와 포즈가 잘 보이게 다시 찍어보세요': 'Retake with the landmark and your pose clearly visible',
@@ -1031,7 +1288,7 @@ const EN_RULES = [
   [/^(.+) 앞으로 이동했어요$/,              m => `Moved to ${tr(m[1])}`],
   [/^(.+)에 온 걸 환영해!$/,                m => `Welcome to ${tr(m[1])}!`],
   [/^(.+) 뱃지를 획득했어요!$/,             m => `You earned the ${tr(m[1])} badge!`],
-  [/^발음 정확도 (\d+)% 이상이면 성공!$/,   m => `Score ${m[1]}% or higher to pass!`],
+  [/^문장 일치도 (\d+)% 이상이면 성공!$/,   m => `Score ${m[1]}% or higher to pass!`],
   [/^📍 (.+)$/,                             m => `📍 ${tr(m[1])}`],
   [/^(백호|청룡|현무|주작) (\d)$/,          m => `${tr(m[1])} ${m[2]}`],
   [/^해금 (\d+) \/ (\d+)$/,                 m => `Unlocked ${m[1]} / ${m[2]}`],
