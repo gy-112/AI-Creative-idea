@@ -292,10 +292,7 @@ DB명 및 계정 정보는 `.env` 파일을 참고합니다.
 - ID : guide_test01
 - PW : 12345678
 ## 📚 문서
-
-- API 명세서: Notion 링크 참고
-- ERD: Notion 링크 참고
-- 서비스 기획안: Notion 링크 참고
+- 서비스 기획안: [Notion 링크 참고](https://docs.google.com/document/d/11tzjmYxNpF7UURLkNhB1IAaZDP49RvoD/edit?usp=sharing&ouid=104013101231736126196&rtpof=true&sd=true)
 
 ---
 
