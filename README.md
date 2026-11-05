@@ -108,7 +108,7 @@ AI를 활용하여 단순한 QR 스탬프 방식에서 벗어나 사용자의 �
 - Docker / Docker Compose
 - GitHub Actions
 - AWS ECS Fargate
-- SpringDoc OpenAPI (Swagger UI)
+- Swagger UI
 
 ### Frontend
 
@@ -143,8 +143,8 @@ src/main/java/jungkathon3team/aftergrow
 ### 2. 저장소 클론
 
 ```bash
-git clone https://github.com/mju-jungkathon/jungkathon3teamBE.git
-cd jungkathon3teamBE
+git clone https://github.com/gy-112/AI-Creative-idea
+cd AI-Creative-idea
 ```
 
 ### 3. 환경변수 설정
