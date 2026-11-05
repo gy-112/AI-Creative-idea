@@ -41,31 +41,20 @@
 - 질문을 통한 캐릭터 유형 선택
 - 미션 완료 및 뱃지 획득에 따른 캐릭터 의상·소품 변화
 
-### 2. 서울 랜드마크 탐방 및 미션
-- 서울 주요 랜드마크 기반의 지역별 미션 제공
-- 역사·문화·드라마·K-팝 등 다양한 주제의 미션
-- 장소별 미션 및 보상 정보 확인
+### 2. 해치 관광 가이드 
+- 랜드마크별 한·영 관광자료와 공식 출처를 제공하고, 저장된 자료를 바탕으로 질문에 답합니다. 맛집·메뉴·노래·영화 등 일부 질문에는 OpenAI 웹 검색을 사용하고 출처 링크를 표시합니다. 소개와 답변은 지원 브라우저에서 읽어줄 수 있습니다.
 
-**MVP 대상 장소**
-- 한·영 관광 안내는 12개 랜드마크에서 제공하며, 시연 화면에서는 강남 사진 미션과 광화문 음성 미션을 체험할 수 있습니다.
+### 3. 한·영 관광 안내
+- 12개 랜드마크에서 제공하며, 시연 화면에서는 강남 사진 미션과 광화문 음성 미션을 체험할 수 있습니다.
 
-### 3. AI 사진 인증
-- 랜드마크 사진 업로드
-- Vision AI를 활용한 사진 속 장소 및 요구 장면 분석
-- 미션 달성 여부 판정 및 결과 제공
-- 인증 실패 시 재시도 안내
+### 4. 사진 미션
+**강남 말춤 사진 미션.** 사용자가 예시 사진을 보고 양팔을 몸 앞에서 교차하는 포즈를 촬영하면, OpenAI 멀티모달 모델이 포즈 일치도와 재시도 안내를 제공합니다. 위치 검증을 켜면 서버가 미션 지점에서 500m 이내인지 별도로 확인합니다.
 
-### 4. AI 한국어 음성 미션
-- 한국어 대사 따라 말하기
-- STT를 통한 음성 텍스트 변환
-- 목표 문장과 사용자 발화 비교
-- 발음 및 문장 완성도 피드백 제공
+### 5. 음성 미션
+**광화문 한국어 음성 미션.** 사용자가 “신에게는 아직 열두 척의 배가 남아 있사옵니다”를 읽으면, OpenAI STT가 녹음을 텍스트로 변환합니다. 서버는 전사문과 목표 문장의 **문장 일치도**를 계산하며, **80점 이상이면 통과**합니다.
 
-### 5. 디지털 뱃지 및 캐릭터 성장
-- 장소별 고유 디지털 뱃지 획득
-- 획득한 뱃지에 따른 캐릭터 아이템 해금
-- 나의 뱃지 컬렉션 및 탐방 진행률 확인
-- 캐릭터와 뱃지 이미지 저장 및 공유
+### 6. 나만의 뱃지 컬렉션
+**시연 화면에서 뱃지·컬렉션·쿠폰 흐름을 보여줍니다.** 사용자별 미션 결과와 뱃지 저장 연동, 이미지 저장·공유, 자동 미션 생성은 향후 계획에 둡니다.
 
 ---
 
@@ -87,110 +76,93 @@ AI를 활용하여 단순한 QR 스탬프 방식에서 벗어나 사용자의 �
 
 ### Backend
 
-- Java 17
-- Spring Boot 4.0.7
-- Spring Data JPA
-- Spring Security
-- PostgreSQL
-- Redis
+- Java 17, Spring Boot 4.1.2 (build.gradle 기준), Gradle Wrapper, Spring Data JPA, Spring Security, JWT
+
+### DB
+- PostgreSQL 16, Redis 7 (doker-compose.yml 기준)
 
 ### AI
 
-- Vision AI / Multimodal LLM API
-- STT API
-- LLM 기반 RAG
+- 사진: OpenAI Responses API, 사진 포즈 평가 기본 모델 gpt-5.4-mini-2026-03-17
+- 음성: OpenAI Audio Transcriptions API, 코드 기본 모델 gpt-transcribe, Java에서 문자 편집 거리 기반 문장 일치도 계산
+- 가이드:  OpenAI Responses API + 선택적 웹 검색, guides.json의 한·영 관광자료, 브라우저 SpeechSynthesis
 
 ### Infrastructure & DevOps
 
 - Docker / Docker Compose
-- GitHub Actions
-- AWS ECS Fargate
-- Swagger UI
+- Railway
 
 ### Frontend
 
-- Lovable 활용 예정
+- HTML, CSS, Vanilla JavaScript, Tailwind CSS CDN
+
+### 지도 / 녹음 기술
+
+- Leaflet + OpenStreetMap, 브라우저 카메라·마이크·위치 API
 
 ---
 
 ## 📂 프로젝트 구조
 
 ```text
-src/main/java/SEOULG
-backend/
+AI-Creative-idea/
 ├── build.gradle
-├── .env.example                  # OPENAI_API_KEY, SONIOX_API_KEY, SUPABASE_URL/KEY, DB 접속 정보
-├── Dockerfile                    # Render 배포용 (Docker 배포를 쓸 때만)
+├── settings.gradle
+├── gradlew, gradlew.bat
+├── gradle/wrapper/
+├── doker-compose.yml            # DB, Redis 실행용
+├── frontend/                    # 프론트엔드
 └── src
     ├── main
-    │   ├── java/{base-package}
+    │   ├── java/com/example/seoulgo
     │   │   ├── SeoulGoApplication.java
     │   │   │
-    │   │   ├── user/             # /api/users/me 식별 (방식은 미정)
-    │   │   │   ├── domain/       # User
+    │   │   ├── user/            # 사용자 식별
+    │   │   │   ├── domain/
     │   │   │   └── repository/
     │   │   │
-    │   │   ├── character/        # POST /api/characters/match
-    │   │   │   ├── controller/
-    │   │   │   ├── service/      # CharacterMatchService (4문항 규칙 기반 매칭)
-    │   │   │   │                 # CharacterEvolutionService (뱃지 수 → 의상·소품)
-    │   │   │   ├── domain/       # CharacterType, UserCharacter, CharacterItem
-    │   │   │   ├── repository/
-    │   │   │   └── dto/
-    │   │   │
-    │   │   ├── landmark/         # GET /api/landmarks
+    │   │   ├── character/       # 캐릭터 매칭, 성장
     │   │   │   ├── controller/
     │   │   │   ├── service/
-    │   │   │   ├── domain/       # Landmark
+    │   │   │   ├── domain/
     │   │   │   ├── repository/
     │   │   │   └── dto/
     │   │   │
-    │   │   ├── mission/          # GET /api/missions/{id}
-    │   │   │   │                 # POST /api/missions/verify-photo
-    │   │   │   │                 # POST /api/missions/verify-voice (2차)
+    │   │   ├── landmark/        # 주변 검색, 해치 안내, 질문
     │   │   │   ├── controller/
-    │   │   │   ├── service/      # MissionService, PhotoMissionService, VoiceMissionService
-    │   │   │   ├── domain/       # Mission, MissionCompletion
+    │   │   │   ├── service/
+    │   │   │   ├── domain/
     │   │   │   ├── repository/
     │   │   │   └── dto/
     │   │   │
-    │   │   ├── badge/            # GET /api/users/me/collection
-    │   │   │   ├── controller/   # CollectionController
-    │   │   │   ├── service/      # BadgeService (지급, 중복 방지), CollectionService
-    │   │   │   ├── domain/       # Badge, UserBadge
-    │   │   │   ├── repository/
-    │   │   │   └── dto/
-    │   │   │
-    │   │   ├── guide/            # POST /api/guide/speech
+    │   │   ├── mission/         # 사진/음성 미션 인증
     │   │   │   ├── controller/
-    │   │   │   ├── service/      # GuideService (장소·언어별 음성 URL 반환)
-    │   │   │   ├── domain/       # GuideAudio (landmarkId, language, audioUrl)
-    │   │   │   └── repository/
+    │   │   │   ├── service/
+    │   │   │   ├── domain/
+    │   │   │   ├── repository/
+    │   │   │   └── dto/
     │   │   │
-    │   │   ├── ai/               # 외부 AI 호출만 담당 (도메인 패키지에 의존하지 않음)
-    │   │   │   ├── vision/       # PhotoVerificationService + OpenAI Vision 클라이언트
-    │   │   │   ├── llm/          # 매칭 설명, 해치 설명, 다국어 텍스트
-    │   │   │   ├── stt/          # Soniox 클라이언트 + 목표 문장 일치도 비교
-    │   │   │   ├── tts/          # 음성 해설 생성 (사전 생성용)
-    │   │   │   └── config/       # API 키, HTTP 클라이언트, 타임아웃
+    │   │   ├── badge/           # 뱃지 지급, 컬렉션
+    │   │   │   ├── controller/
+    │   │   │   ├── service/
+    │   │   │   ├── domain/
+    │   │   │   ├── repository/
+    │   │   │   └── dto/
     │   │   │
-    │   │   ├── storage/          # Supabase Storage 업로드 (인증 사진, 음성 파일)
-    │   │   ├── location/         # (2차) 좌표 거리 계산, 500m 이내 판정
-    │   │   ├── coupon/           # (2차) 제휴 쿠폰
-    │   │   │
-    │   │   └── common/
-    │   │       ├── response/     # ApiResponse
-    │   │       ├── exception/    # ErrorCode, 전역 예외 처리
-    │   │       ├── config/       # CORS(Vercel 도메인), Swagger
-    │   │       └── user/         # 사용자 식별 필터·리졸버 (3번 결정 후 구현)
+    │   │   ├── guide/           # 장소·언어별 음성 해설
+    │   │   ├── ai/              # 외부 AI 호출 (vision, llm, stt, tts, config)
+    │   │   ├── storage/         # 인증 사진, 음성 파일 업로드
+    │   │   ├── location/        # 좌표 거리 계산
+    │   │   ├── coupon/          # 제휴 쿠폰
+    │   │   └── common/          # 응답, 예외 처리, 설정
     │   │
     │   └── resources
     │       ├── application.yml
     │       ├── application-local.yml   # Git 제외
-    │       └── db/migration/           # Flyway를 쓰는 경우 (V1__init.sql, V2__seed.sql ...)
+    │       └── data.sql                # 초기 데이터
     │
     └── test
-        └── java/{base-package}         # 도메인별 테스트, ai는 목 구현으로 테스트
+        └── java/com/example/seoulgo
 ```
 
 ---
