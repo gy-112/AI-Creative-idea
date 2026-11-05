@@ -11,7 +11,7 @@
 <body class="min-h-screen bg-slate-200 flex items-center justify-center">
 <div class="phone bg-white overflow-hidden relative">
 
-     <!-- 로그인 화면 -->
+  <!-- 로그인 화면 -->
   <section id="loginScreen" class="login-bg h-full flex flex-col justify-center px-8 text-white">
     <div class="flex flex-col items-center mb-10 rise">
       <img src="character_image/logo.png" alt="SEOUL GO" class="w-56 max-h-56 object-contain drop-shadow-xl"
@@ -32,16 +32,34 @@
 
   <!-- 메인 화면 -->
   <section id="mainScreen" class="hidden h-full flex-col bg-gradient-to-b from-sky-100 to-white">
-    <header class="px-5 pt-10 pb-3 flex items-center justify-between">
-      <h1 class="text-xl font-black text-blue-700">SEOUL <span class="text-amber-500">GO</span></h1>
+    <header class="pl-2 pr-5 pt-10 pb-3 flex items-center justify-between">
+      <img src="character_image/minilogo.png" alt="SEOUL GO" class="h-12 w-auto max-w-[200px] object-contain object-left -ml-2"
+           onerror="this.outerHTML='<h1 class=&quot;text-xl font-black text-blue-700&quot;>SEOUL GO</h1>'">
       <span id="welcome" class="text-sm text-slate-500"></span>
     </header>
     <main id="view" class="flex-1 overflow-y-auto"></main>
     <nav class="bg-white border-t grid grid-cols-4 text-center text-[11px] text-slate-400 pt-2 pb-5">
-      <button class="tab" data-tab="home"><div class="text-2xl">🏠</div>홈</button>
-      <button class="tab" data-tab="map"><div class="text-2xl">🗺️</div>지도</button>
-      <button class="tab" data-tab="collection"><div class="text-2xl">🏅</div>컬렉션</button>
-      <button class="tab" data-tab="settings"><div class="text-2xl">⚙️</div>설정</button>
+      <button class="tab flex flex-col items-center gap-1" data-tab="home">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>
+        </svg>홈
+      </button>
+      <button class="tab flex flex-col items-center gap-1" data-tab="map">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9 4 3 6.5v13.5L9 17.5l6 2.5 6-2.5V4l-6 2.5z"/><path d="M9 4v13.5"/><path d="M15 6.5V20"/>
+        </svg>지도
+      </button>
+      <button class="tab flex flex-col items-center gap-1" data-tab="collection">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="9" r="6"/><path d="M8.5 13.8 7 21l5-2.8 5 2.8-1.5-7.2"/>
+        </svg>컬렉션
+      </button>
+      <button class="tab flex flex-col items-center gap-1" data-tab="settings">
+        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>
+        </svg>설정
+      </button>
     </nav>
   </section>
 

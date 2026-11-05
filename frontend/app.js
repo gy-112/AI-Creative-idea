@@ -203,17 +203,17 @@ function renderLandmark() {
       </div>
     </div>
 
-    <!-- 해치(왼쪽) + 말풍선(오른쪽) -->
-    <div class="flex items-start gap-2 px-4 pb-3">
-      <img src="${GUIDE_IMG}" alt="해치" class="w-24 h-24 object-contain shrink-0 float" onerror="this.style.visibility='hidden'">
-      <div class="bubble flex-1 bg-white rounded-2xl p-3 shadow-sm text-[13px] leading-relaxed text-slate-700">
-        <p class="font-bold text-slate-800 mb-1">${l.name}에 온 걸 환영해!</p>
+    <!-- 해치(왼쪽) + 말풍선(오른쪽) : 크게 -->
+    <div class="flex-1 min-h-0 flex items-center gap-2 px-4">
+      <img src="${GUIDE_IMG}" alt="해치" class="w-36 h-36 object-contain shrink-0 float" onerror="this.style.visibility='hidden'">
+      <div class="bubble flex-1 bg-white rounded-3xl p-4 shadow-md text-[15px] leading-relaxed text-slate-700">
+        <p class="text-[17px] font-black text-slate-800 mb-1.5">${l.name}에 온 걸 환영해!</p>
         <p>${LANDMARK_INFO[l.id] || l.desc}</p>
       </div>
     </div>
 
-    <!-- 채팅 -->
-    <div class="flex-1 min-h-0 mx-4 bg-white rounded-2xl shadow-sm flex flex-col">
+    <!-- 채팅 : 높이 고정 -->
+    <div class="h-[180px] shrink-0 mx-4 mt-3 bg-white rounded-2xl shadow-sm flex flex-col">
       <div id="chatLog" class="flex-1 min-h-0 overflow-y-auto p-3 space-y-2">
         <div class="chat-msg bot">궁금한 게 있으면 뭐든 물어봐!</div>
       </div>
