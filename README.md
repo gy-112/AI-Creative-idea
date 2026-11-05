@@ -194,6 +194,7 @@ backend/
     │
     └── test
         └── java/{base-package}         # 도메인별 테스트, ai는 목 구현으로 테스트
+```
 
 ---
 
