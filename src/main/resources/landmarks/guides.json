@@ -1,0 +1,182 @@
+{
+  "namsan": {
+    "ko": {
+      "name": "남산",
+      "description": "서울 도심에 있는 남산이야. 정상에 있는 N서울타워 전망대에서 서울 전경을 둘러볼 수 있어.",
+      "characterComment": "남산에 온 걸 환영해!",
+      "visitorFacts": "N서울타워는 남산 정상에 있다. 전망대에서는 서울을 여러 방향으로 내려다볼 수 있다. 사랑의 자물쇠와 하트 의자도 인기 있는 볼거리다. 타워에는 전망대와 기념품점, 식당, 카페가 있다."
+    },
+    "en": {
+      "name": "Namsan",
+      "description": "Namsan is a mountain in central Seoul. The observation decks of N Seoul Tower at the summit offer panoramic views of the city.",
+      "characterComment": "Welcome to Namsan!",
+      "visitorFacts": "N Seoul Tower stands at the summit of Namsan. The observation decks offer panoramic views of Seoul. The love locks and the heart chair are popular attractions. The tower also has a gift shop, restaurants, and cafes."
+    },
+    "sourceRef": "https://english.visitseoul.net/Tourist-Attractions-list1/Namsan-Seoul-Tower/ENP000036"
+  },
+  "gangnam": {
+    "ko": {
+      "name": "강남",
+      "description": "강남역 일대야. 지하상가에 들르면 의류나 화장품을 구경할 수 있어.",
+      "characterComment": "강남에 온 걸 환영해!",
+      "visitorFacts": "강남역 지하상가는 강남대로 아래에 있고 지하철 강남역과 연결된다. 옷과 화장품 등을 판매하는 매장이 있다. 강남역에는 2호선과 신분당선이 정차한다."
+    },
+    "en": {
+      "name": "Gangnam",
+      "description": "This is the area around Gangnam Station. Browse fashion and beauty shops in the underground arcade.",
+      "characterComment": "Welcome to Gangnam!",
+      "visitorFacts": "The underground arcade sits beneath Gangnam-daero and connects to Gangnam Station. Its shops sell clothing and cosmetics. Gangnam Station serves Line 2 and the Shinbundang Line."
+    },
+    "sourceRef": "https://english.visitseoul.net/area/Gangnam-Station-Underground-Shopping-Center/ENP017740"
+  },
+  "coex": {
+    "ko": {
+      "name": "코엑스",
+      "description": "삼성동 코엑스몰이야. 쇼핑을 하다가 별마당도서관에 들러 책을 보며 쉬어도 좋아.",
+      "characterComment": "코엑스에 온 걸 환영해!",
+      "visitorFacts": "스타필드 코엑스몰은 서울 강남구 영동대로 513에 있다. 몰 안에 별마당도서관이 있고 패션, 식음료와 여가 시설을 이용할 수 있다."
+    },
+    "en": {
+      "name": "COEX",
+      "description": "At COEX Mall in Samseong-dong, you can shop and take a reading break at Starfield Library.",
+      "characterComment": "Welcome to COEX!",
+      "visitorFacts": "Starfield COEX Mall is at 513 Yeongdong-daero in Gangnam-gu. The mall houses Starfield Library along with fashion shops, places to eat, and entertainment facilities."
+    },
+    "sourceRef": "https://english.visitkorea.or.kr/svc/whereToGo/locIntrdn/rgnContentsView.do?vcontsId=73375"
+  },
+  "bongeunsa": {
+    "ko": {
+      "name": "봉은사",
+      "description": "코엑스 북쪽의 불교 사찰이야. 신라 때 처음 세워졌어.",
+      "characterComment": "봉은사에 온 걸 환영해!",
+      "visitorFacts": "봉은사는 794년에 창건되었고 처음 이름은 견성사였다. 1498년 정현왕후가 절을 중창하면서 봉은사로 이름을 바꾸었다. 코엑스 북쪽에 있다."
+    },
+    "en": {
+      "name": "Bongeunsa Temple",
+      "description": "Bongeunsa is a Buddhist temple north of COEX. Its history goes back to the Silla period.",
+      "characterComment": "Welcome to Bongeunsa Temple!",
+      "visitorFacts": "The temple was founded in 794 under the name Gyeonseongsa. Queen Jeonghyeon renovated it in 1498, when it took the name Bongeunsa. It is north of COEX."
+    },
+    "sourceRef": "https://english.visitkorea.or.kr/svc/contents/contentsView.do?vcontsId=104722"
+  },
+  "myeongdong": {
+    "ko": {
+      "name": "명동",
+      "description": "명동역과 을지로 사이에 쇼핑 골목이 이어져 있어. 옷과 소품을 구경하고 식당에도 들러 봐.",
+      "characterComment": "명동에 온 걸 환영해!",
+      "visitorFacts": "명동의 중심에는 명동역 쪽과 을지로 쪽에서 시작하는 두 거리가 만난다. 골목에는 의류, 신발, 소품 가게와 백화점이 있다. 칼국수와 돈가스를 파는 식당도 찾을 수 있다."
+    },
+    "en": {
+      "name": "Myeongdong",
+      "description": "Explore the shopping lanes between Myeongdong Station and Euljiro for clothes, accessories, and places to eat.",
+      "characterComment": "Welcome to Myeongdong!",
+      "visitorFacts": "Two main shopping streets meet in central Myeongdong, one from Myeongdong Station and the other from Euljiro. There are department stores and shops selling clothing, shoes, and accessories. Some restaurants serve kalguksu noodle soup or pork cutlets."
+    },
+    "sourceRef": "https://english.visitkorea.or.kr/svc/contents/contentsView.do?menuSn=351&vcontsId=88011"
+  },
+  "deoksugung": {
+    "ko": {
+      "name": "덕수궁",
+      "description": "정동에 있는 궁궐이야. 예전에는 경운궁이라 불렸고 궁 안에 석조전이 있어.",
+      "characterComment": "덕수궁에 온 걸 환영해!",
+      "visitorFacts": "덕수궁은 원래 월산대군의 집이었다. 임진왜란 때 왕실이 임시 거처로 사용했고, 1611년 경운궁이라는 이름이 붙었다. 1907년에 덕수궁으로 이름이 바뀌었다. 궁 안에 석조전이 있다."
+    },
+    "en": {
+      "name": "Deoksugung Palace",
+      "description": "This palace in Jeong-dong was once called Gyeongungung. Seokjojeon Hall stands on its grounds.",
+      "characterComment": "Welcome to Deoksugung Palace!",
+      "visitorFacts": "The site began as the residence of Grand Prince Wolsan. The royal family used it as temporary quarters during the Imjin War. It was named Gyeongungung in 1611 and Deoksugung in 1907. Seokjojeon Hall is on the palace grounds."
+    },
+    "sourceRef": "https://english.visitkorea.or.kr/svc/contents/contentsView.do?menuSn=351&vcontsId=110650"
+  },
+  "dongnipmun": {
+    "ko": {
+      "name": "독립문",
+      "description": "서대문독립공원에 있는 독립문이야. 주변에서 옛 영은문 유적도 볼 수 있어.",
+      "characterComment": "독립문에 온 걸 환영해!",
+      "visitorFacts": "독립문은 서대문독립공원의 국가 지정 사적이다. 바로 옆에 영은문의 유적이 남아 있다. 공원에는 독립관과 서재필 동상, 서대문형무소역사관도 있다."
+    },
+    "en": {
+      "name": "Dongnimmun Gate",
+      "description": "Dongnimmun, or Independence Gate, stands in Seodaemun Independence Park near the remains of Yeongeunmun Gate.",
+      "characterComment": "Welcome to Dongnimmun Gate!",
+      "visitorFacts": "Dongnimmun is a designated historic site in Seodaemun Independence Park. The remains of Yeongeunmun stand beside it. The park also has Independence Hall, a statue of Seo Jae-pil, and Seodaemun Prison History Hall."
+    },
+    "sourceRef": "https://english.visitkorea.or.kr/svc/contents/contentsView.do?vcontsId=81455"
+  },
+  "seodaemun": {
+    "ko": {
+      "name": "서대문형무소",
+      "description": "옛 형무소에 조성된 역사관이야. 일제강점기 독립운동가들이 겪은 일을 살펴볼 수 있어.",
+      "characterComment": "서대문형무소에 온 걸 환영해!",
+      "visitorFacts": "서대문형무소에는 일제강점기에 독립운동가들이 수감되었다. 서대문독립공원 안에 있는 역사관은 독립운동의 희생을 기억하기 위해 1998년에 문을 열었다."
+    },
+    "en": {
+      "name": "Seodaemun Prison History Hall",
+      "description": "This museum occupies a former prison and tells the stories of Korean independence activists imprisoned during colonial rule.",
+      "characterComment": "Welcome to Seodaemun Prison History Hall!",
+      "visitorFacts": "Korean independence activists were imprisoned here during the Japanese occupation. The history hall opened in 1998 in Seodaemun Independence Park to commemorate their sacrifices."
+    },
+    "sourceRef": "https://english.visitseoul.net/attractions/Seodaemun-Prison-History-Hall/ENP001831"
+  },
+  "sinchon": {
+    "ko": {
+      "name": "신촌",
+      "description": "신촌역에서 연세대까지 이어지는 연세로를 걸어 봐. 골목에 카페와 식당이 있어.",
+      "characterComment": "신촌에 온 걸 환영해!",
+      "visitorFacts": "연세로는 지하철 신촌역과 연세대학교를 잇는다. 큰길에서 여러 골목이 갈라지며 식당, 카페, 상점이 있다."
+    },
+    "en": {
+      "name": "Sinchon",
+      "description": "Walk along Yeonse-ro from Sinchon Station toward Yonsei University and explore its side streets for cafés and restaurants.",
+      "characterComment": "Welcome to Sinchon!",
+      "visitorFacts": "Yeonse-ro links Sinchon Subway Station with Yonsei University. Side streets branch off the main road and offer restaurants, cafés, and shops."
+    },
+    "sourceRef": "https://english.visitkorea.or.kr/svc/contents/contentsView.do?vcontsId=109006"
+  },
+  "gwanghwamun": {
+    "ko": {
+      "name": "광화문",
+      "description": "경복궁의 남쪽 정문이야. 돌로 쌓은 기단 위에 목조 문루가 있고 아치가 세 개야.",
+      "characterComment": "광화문에 온 걸 환영해!",
+      "visitorFacts": "광화문은 조선 태조 때인 1395년에 처음 세워졌다. 경복궁의 남쪽 정문이다. 세 아치 중 가운데 통로는 왕이 사용했고 양옆은 왕세자와 관리가 사용했다."
+    },
+    "en": {
+      "name": "Gwanghwamun Gate",
+      "description": "Gwanghwamun is the main southern gate of Gyeongbokgung Palace. Look for the three arches and the wooden tower above them.",
+      "characterComment": "Welcome to Gwanghwamun Gate!",
+      "visitorFacts": "Gwanghwamun was first built in 1395 under King Taejo. It is the main gate on the south side of Gyeongbokgung Palace. The king used the middle arch, while the crown prince and officials used the side arches."
+    },
+    "sourceRef": "https://english.visitkorea.or.kr/svc/contents/contentsView.do?menuSn=351&vcontsId=110592"
+  },
+  "gyeongbok": {
+    "ko": {
+      "name": "경복궁",
+      "description": "1395년에 세운 조선의 법궁이야. 정문인 광화문에서 궁궐 구경을 시작해 봐.",
+      "characterComment": "경복궁에 온 걸 환영해!",
+      "visitorFacts": "경복궁은 1395년 태조 때 세워진 조선의 법궁이다. 광화문이 정문이고 북악산을 배경으로 자리 잡고 있다. 1592년 임진왜란으로 소실된 뒤 1867년 고종 때 다시 지어졌다."
+    },
+    "en": {
+      "name": "Gyeongbokgung Palace",
+      "description": "Gyeongbokgung was founded in 1395 as the principal palace of Joseon. Gwanghwamun is its main gate.",
+      "characterComment": "Welcome to Gyeongbokgung Palace!",
+      "visitorFacts": "Gyeongbokgung was established under King Taejo in 1395 as the principal palace of Joseon. It has Gwanghwamun as its main gate and Bugaksan behind it. It burned in 1592 during the Imjin War and was rebuilt in 1867 under King Gojong."
+    },
+    "sourceRef": "https://royal.khs.go.kr/ROYAL/contents/R101010000.do?menuId=03_01_01"
+  },
+  "bukchon": {
+    "ko": {
+      "name": "북촌",
+      "description": "한옥이 모여 있는 동네야. 주민들이 사는 곳이니 골목에서는 조용히 둘러봐 줘.",
+      "characterComment": "북촌에 온 걸 환영해!",
+      "visitorFacts": "북촌은 경복궁과 창덕궁 사이에 있으며 조선시대의 전통 가옥인 한옥이 모여 있다. 북촌이라는 이름은 종로와 청계천의 북쪽에 있다는 데서 왔다. 일부 한옥은 문화시설이나 찻집으로 쓰이고, 주민이 사는 집도 있다."
+    },
+    "en": {
+      "name": "Bukchon Hanok Village",
+      "description": "Bukchon is a neighborhood of traditional Korean houses. People live here, so please explore the lanes quietly.",
+      "characterComment": "Welcome to Bukchon Hanok Village!",
+      "visitorFacts": "Bukchon lies between Gyeongbokgung and Changdeokgung and is known for traditional houses called hanok. Its name refers to its position north of Jongno and Cheonggyecheon. Some houses serve as cultural spaces or teahouses, while others remain private homes."
+    },
+    "sourceRef": "https://english.visitkorea.or.kr/svc/contents/contentsView.do?menuSn=351&vcontsId=97932"
+  }
+}
