@@ -1,5 +1,7 @@
 const $ = s => document.querySelector(s);
 let userName = '';
+let accessToken = '';
+const API_BASE = 'http://127.0.0.1:8080/api/v1';
 
 function toast(msg) {
   const t = $('#toast'); t.textContent = msg; t.classList.remove('hidden');
@@ -172,6 +174,10 @@ async function bindMap() {
 
 // ═════════════════ 지역 정보 (해치 안내 + 채팅) ═════════════════
 const GUIDE_IMG = 'character_image/hachi.png';
+
+function landmarkGuideUrl(landmark) {
+  return API_BASE + '/landmarks/' + encodeURIComponent(landmark.id);
+}
 // 말풍선에 들어갈 장소 소개
 const LANDMARK_INFO = {
   gangnam:     '강남역과 테헤란로를 중심으로 한 서울의 대표 번화가야. 쇼핑, 맛집, K-POP 문화를 한 번에 즐길 수 있어!',
@@ -207,8 +213,10 @@ function renderLandmark() {
     <div class="flex-1 min-h-0 flex items-center gap-2 px-4">
       <img src="${GUIDE_IMG}" alt="해치" class="w-36 h-36 object-contain shrink-0 float" onerror="this.style.visibility='hidden'">
       <div class="bubble flex-1 bg-white rounded-3xl p-4 shadow-md text-[15px] leading-relaxed text-slate-700">
-        <p class="text-[17px] font-black text-slate-800 mb-1.5">${l.name}에 온 걸 환영해!</p>
-        <p>${LANDMARK_INFO[l.id] || l.desc}</p>
+        <p id="landmarkGreeting" class="text-[17px] font-black text-slate-800 mb-1.5">${l.name}에 온 걸 환영해!</p>
+        <p id="landmarkDescription">${LANDMARK_INFO[l.id] || l.desc}</p>
+        <a id="landmarkSource" hidden class="mt-1 text-xs text-blue-700 underline"
+           target="_blank" rel="noopener noreferrer">${lang === 'en' ? 'Official tourism source' : '공식 관광 자료'}</a>
       </div>
     </div>
 
@@ -218,7 +226,7 @@ function renderLandmark() {
         <div class="chat-msg bot">궁금한 게 있으면 뭐든 물어봐!</div>
       </div>
       <form id="chatForm" class="flex gap-2 p-2 border-t border-slate-100">
-        <input id="chatInput" class="flex-1 bg-slate-100 rounded-full px-4 py-2 text-sm outline-none" placeholder="이 장소에 대해 물어보세요" autocomplete="off">
+        <input id="chatInput" maxlength="500" class="flex-1 bg-slate-100 rounded-full px-4 py-2 text-sm outline-none" placeholder="이 장소에 대해 물어보세요" autocomplete="off">
         <button class="bg-blue-700 text-white rounded-full px-4 text-sm font-bold">전송</button>
       </form>
     </div>
@@ -229,10 +237,48 @@ function renderLandmark() {
     </div>
   </div>`;
 }
-// TODO: 백엔드 연결 시 LLM 답변 API 호출로 교체 (예: POST /api/guide/chat)
-async function askGuide(landmark, question) {
-  return 'AI 답변 기능은 준비 중이에요. 곧 대답해 줄게!';
+async function guideRequest(url, options) {
+  const token = accessToken;
+  const response = await fetch(url, {
+    ...options,
+    headers: { ...options.headers, Authorization: `Bearer ${token}` },
+  });
+  if (response.status === 401 && accessToken === token) {
+    showLogin();
+    $('#loginError').textContent = lang === 'en' ? 'Please sign in again.' : '다시 로그인해 주세요.';
+  }
+  const body = await response.json().catch(() => null);
+  if (!response.ok || !body?.success) {
+    throw new Error(body?.code || 'GUIDE_REQUEST_FAILED');
+  }
+  return body.data;
 }
+
+async function loadLandmarkDescription(landmark) {
+  const description = $('#landmarkDescription');
+  const greeting = $('#landmarkGreeting');
+  const source = $('#landmarkSource');
+  try {
+    const data = await guideRequest(landmarkGuideUrl(landmark), { headers: { 'Accept-Language': lang } });
+    if (!description.isConnected) return;
+    greeting.textContent = data.characterComment;
+    description.textContent = data.description;
+    source.href = data.sourceRef;
+    source.hidden = false;
+  } catch {
+    // The local description remains visible when the guide server is unavailable.
+  }
+}
+
+async function askGuide(landmark, question) {
+  const data = await guideRequest(landmarkGuideUrl(landmark) + '/questions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question, language: lang }),
+  });
+  return data.answer;
+}
+
 function addChat(text, who) {
   const log = $('#chatLog');
   if (!log) return;
@@ -242,16 +288,37 @@ function addChat(text, who) {
   log.appendChild(div);
   log.scrollTop = log.scrollHeight;
 }
+
 function bindLandmark() {
+  const landmark = currentLandmark;
+  const form = $('#chatForm');
+  const input = $('#chatInput');
+  const send = form.querySelector('button');
   $('#lmBack').onclick = () => go('map');
-  $('#missionStart').onclick = () => startMission(currentLandmark);
-  $('#chatForm').onsubmit = async e => {
+  $('#missionStart').onclick = () => startMission(landmark);
+  void loadLandmarkDescription(landmark);
+
+  form.onsubmit = async e => {
     e.preventDefault();
-    const q = $('#chatInput').value.trim();
-    if (!q) return;
-    $('#chatInput').value = '';
-    addChat(q, 'me');
-    addChat(await askGuide(currentLandmark, q), 'bot');
+    const question = input.value.trim();
+    if (!question || send.disabled) return;
+    input.value = '';
+    send.disabled = true;
+    addChat(question, 'me');
+    try {
+      const answer = await askGuide(landmark, question);
+      if (form.isConnected) addChat(answer, 'bot');
+    } catch (error) {
+      if (!form.isConnected) return;
+      const unavailable = error.message === 'GUIDE_NOT_CONFIGURED';
+      const message = unavailable
+        ? (lang === 'en' ? 'The guide server needs its AI settings.' : '서버에 AI 가이드 설정이 필요해요.')
+        : (lang === 'en' ? 'The guide could not answer. Please try again.' : '답변을 가져오지 못했어요. 다시 시도해 주세요.');
+      addChat(message, 'bot');
+      if (!input.value) input.value = question;
+    } finally {
+      send.disabled = false;
+    }
   };
 }
 
@@ -742,13 +809,40 @@ function go(tab) {
   $('#view').innerHTML = PAGES[tab]();
   $('#view').scrollTop = 0;
   BINDS[tab]?.();
-  $('#logout')?.addEventListener('click', showLogin);
+  $('#logout')?.addEventListener('click', logout);
 }
 document.querySelectorAll('.tab').forEach(b => b.onclick = () => go(b.dataset.tab));
 
 // ═════════════════ 로그인 ═════════════════
-// TODO: 백엔드 준비되면 fetch('/api/login', ...) 로 교체
-async function login(id, pw) { return { ok: true, name: id }; }
+async function login(id, password) {
+  const response = await fetch(API_BASE + '/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ loginId: id, password }),
+  });
+  const body = await response.json().catch(() => null);
+  if (response.ok && body?.success && body.data?.accessToken) {
+    accessToken = body.data.accessToken;
+    return true;
+  }
+  if (body?.code === 'LOGIN_FAILED') return false;
+  throw new Error('LOGIN_REQUEST_FAILED');
+}
+
+async function logout() {
+  const token = accessToken;
+  showLogin();
+  if (!token) return;
+  try {
+    const response = await fetch(API_BASE + '/auth/logout', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!response.ok) throw new Error('LOGOUT_REQUEST_FAILED');
+  } catch {
+    toast(lang === 'en' ? 'Could not notify the server of sign-out.' : '서버에 로그아웃을 알리지 못했어요.');
+  }
+}
 
 function showMain(name) {
   userName = name;
@@ -783,6 +877,7 @@ function askLocationConsent() {
   };
 }
 function showLogin() {
+  accessToken = '';
   $('#mainScreen').classList.replace('flex', 'hidden');
   $('#loginScreen').classList.remove('hidden');
   $('#userPw').value = '';
@@ -796,10 +891,19 @@ $('#loginForm').addEventListener('submit', async e => {
     const f = $('#loginForm'); f.classList.remove('shake'); void f.offsetWidth; f.classList.add('shake');
     return;
   }
-  $('#loginError').textContent = '';
-  const res = await login(id, pw);
-  if (res.ok) showMain(res.name);
-  else $('#loginError').textContent = '아이디 또는 비밀번호가 맞지 않아요.';
+  const submit = e.currentTarget.querySelector('button[type="submit"]');
+  if (submit.disabled) return;
+  const error = $('#loginError');
+  error.textContent = '';
+  submit.disabled = true;
+  try {
+    if (await login(id, pw)) showMain(id);
+    else error.textContent = '아이디 또는 비밀번호가 맞지 않아요.';
+  } catch {
+    error.textContent = '로그인 서버에 연결하지 못했어요. 잠시 후 다시 시도해 주세요.';
+  } finally {
+    submit.disabled = false;
+  }
 });
 $('#findId').onclick = () => toast('아이디 찾기는 준비 중이에요');
 $('#findPw').onclick = () => toast('비밀번호 찾기는 준비 중이에요');
