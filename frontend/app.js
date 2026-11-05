@@ -444,7 +444,7 @@ const MISSIONS = {
   gangnam: {
     id: 901,
     type: 'photo',
-    example: 'character_image/gangnam_pose.png',      // 예시 포즈 사진 (파일 넣으면 자동 표시)
+    example: 'character_image/gangnam_pose.jpg',
     guides: ['팔과 상체가 잘 보이게 찍어주세요', '예시 사진과 같은 포즈를 취해주세요', '앱 카메라로만 촬영할 수 있어요'],
   },
   gwanghwamun: {
@@ -478,10 +478,11 @@ function renderMission() {
         <p class="text-[11px] font-bold tracking-widest text-blue-700">MISSION · PHOTO</p>
         <p class="text-xl font-black text-slate-800 leading-snug mt-1">사진과 같은 포즈로<br>인증샷을 찍어보세요!</p>
       </div>
-      <div class="example-box">
-        <img src="${m.example}" alt="예시 포즈" onerror="this.remove()">
-        <span>예시 포즈 사진</span>
-      </div>
+      <figure class="flex flex-col items-center gap-2">
+        <img src="${m.example}" alt="예시 포즈 사진" width="1122" height="1402"
+             class="h-auto w-auto max-h-60 max-w-full rounded-2xl object-contain" onerror="this.remove()">
+        <figcaption class="text-sm text-slate-600">예시 포즈 사진</figcaption>
+      </figure>
       <ul class="bg-white rounded-2xl p-4 shadow-sm space-y-1.5 text-[13px] text-slate-600">
         ${m.guides.map(g => `<li class="flex gap-2"><span class="text-blue-700">✓</span><span>${g}</span></li>`).join('')}
       </ul>
