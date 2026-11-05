@@ -99,8 +99,8 @@ AI를 활용하여 단순한 QR 스탬프 방식에서 벗어나 사용자의 �
 
 ### AI
 
-- Vision AI / Multimodal LLM API (선정 예정)
-- Soniox STT API (검토 중)
+- Vision AI / Multimodal LLM API
+- STT API
 - LLM 기반 RAG
 
 ### Infrastructure & DevOps
