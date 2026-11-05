@@ -8,6 +8,7 @@ import com.example.seoulgo.mission.service.VoiceMissionService;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -34,6 +35,11 @@ public class PhotoMissionController {
         this.photoMissions = photoMissions;
         this.voiceMissions = voiceMissions;
         this.location = location;
+    }
+
+    @GetMapping("/api/v1/missions/location-settings")
+    public ResponseEntity<ApiResponse> locationSettings() {
+        return ok(new LocationSettings(location.isEnabled()));
     }
 
     @PostMapping(path = "/api/v1/missions/{missionId}/photo",
@@ -151,6 +157,8 @@ public class PhotoMissionController {
     }
 
     public enum MissionResult { PASSED, FAILED, NEEDS_RETRY }
+
+    public record LocationSettings(boolean gpsRequired) {}
 
     public record Check(String name, boolean passed) {}
 

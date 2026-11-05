@@ -117,3 +117,41 @@ body { font-family: 'Noto Sans KR', sans-serif; }
 .login-bg { background: linear-gradient(rgba(15,23,42,.30), rgba(15,23,42,.55)),
                         url('character_image/background.png') center / cover no-repeat; }
 .home-bg  { background: url('character_image/background.png') center / cover no-repeat; }
+
+/* 랜드마크 해치 가이드 */
+.landmark-guide {
+  display: grid; height: 100%; min-height: 0;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+.landmark-intro {
+  display: flex; align-items: flex-start; gap: .5rem;
+  padding: 0 1rem .5rem; max-height: min(33dvh, 11rem); overflow-y: auto;
+}
+.landmark-intro-avatar { width: clamp(2.5rem, 8dvh, 4.25rem); aspect-ratio: 1; }
+.guide-chat { display: flex; flex-direction: column; min-height: 0; margin: 0 1rem; }
+.guide-chat-log {
+  display: flex; flex: 1; flex-direction: column; gap: .5rem;
+  min-height: 0; min-width: 0; overflow-y: auto; overflow-x: hidden; padding: .65rem;
+}
+.guide-chat #chatForm { flex-shrink: 0; }
+.chat-msg {
+  flex-shrink: 0; max-width: 90%; padding: .45rem .65rem; color: #111;
+  border-radius: .875rem; font-size: .875rem; white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.chat-msg.me { align-self: flex-end; background: #dbeafe; border-bottom-right-radius: .25rem; }
+.chat-msg.bot { align-self: flex-start; background: #fce7f3; border-bottom-left-radius: .25rem; }
+.guide-speaker { display: block; color: #831843; font-size: .75rem; font-weight: 700; }
+.guide-citation {
+  display: inline-block; white-space: nowrap; vertical-align: baseline;
+  margin-inline-start: .3rem; padding: .06rem .38rem;
+  border: 1px solid #c7d2fe; border-radius: 9999px; background: #fff;
+  color: #1d4ed8; font-size: .6875rem; font-weight: 700;
+}
+.guide-citation:hover, .guide-citation:focus-visible { background: #e0e7ff; }
+.guide-retry { color: #1d4ed8; text-decoration: underline; font-size: .75rem; }
+.guide-retry { display: block; margin: .35rem 0 0; font-weight: 700; }
+.guide-speech {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 2rem;
+  min-height: 2rem; margin-inline-start: .25rem; border-radius: .5rem;
+}
+.guide-speech:hover, .guide-speech[aria-pressed="true"] { background: #fbcfe8; }
