@@ -119,16 +119,81 @@ AI를 활용하여 단순한 QR 스탬프 방식에서 벗어나 사용자의 �
 ## 📂 프로젝트 구조
 
 ```text
-src/main/java/jungkathon3team/aftergrow
-├── auth/          # 회원가입 / 로그인 / 토큰 관리
-├── running/       # 러닝 세션
-├── heartrate/     # 심박수 측정
-├── recovery/      # 회복 가이드
-├── profile/       # 프로필 및 설정
-└── common/        # 공통 응답, 예외 처리, 시큐리티 설정
-```
-
-※ 실제 서비스 도메인에 맞춰 패키지 구조를 확장 및 변경할 예정입니다.
+src/main/java/SEOULG
+backend/
+├── build.gradle
+├── .env.example                  # OPENAI_API_KEY, SONIOX_API_KEY, SUPABASE_URL/KEY, DB 접속 정보
+├── Dockerfile                    # Render 배포용 (Docker 배포를 쓸 때만)
+└── src
+    ├── main
+    │   ├── java/{base-package}
+    │   │   ├── SeoulGoApplication.java
+    │   │   │
+    │   │   ├── user/             # /api/users/me 식별 (방식은 미정)
+    │   │   │   ├── domain/       # User
+    │   │   │   └── repository/
+    │   │   │
+    │   │   ├── character/        # POST /api/characters/match
+    │   │   │   ├── controller/
+    │   │   │   ├── service/      # CharacterMatchService (4문항 규칙 기반 매칭)
+    │   │   │   │                 # CharacterEvolutionService (뱃지 수 → 의상·소품)
+    │   │   │   ├── domain/       # CharacterType, UserCharacter, CharacterItem
+    │   │   │   ├── repository/
+    │   │   │   └── dto/
+    │   │   │
+    │   │   ├── landmark/         # GET /api/landmarks
+    │   │   │   ├── controller/
+    │   │   │   ├── service/
+    │   │   │   ├── domain/       # Landmark
+    │   │   │   ├── repository/
+    │   │   │   └── dto/
+    │   │   │
+    │   │   ├── mission/          # GET /api/missions/{id}
+    │   │   │   │                 # POST /api/missions/verify-photo
+    │   │   │   │                 # POST /api/missions/verify-voice (2차)
+    │   │   │   ├── controller/
+    │   │   │   ├── service/      # MissionService, PhotoMissionService, VoiceMissionService
+    │   │   │   ├── domain/       # Mission, MissionCompletion
+    │   │   │   ├── repository/
+    │   │   │   └── dto/
+    │   │   │
+    │   │   ├── badge/            # GET /api/users/me/collection
+    │   │   │   ├── controller/   # CollectionController
+    │   │   │   ├── service/      # BadgeService (지급, 중복 방지), CollectionService
+    │   │   │   ├── domain/       # Badge, UserBadge
+    │   │   │   ├── repository/
+    │   │   │   └── dto/
+    │   │   │
+    │   │   ├── guide/            # POST /api/guide/speech
+    │   │   │   ├── controller/
+    │   │   │   ├── service/      # GuideService (장소·언어별 음성 URL 반환)
+    │   │   │   ├── domain/       # GuideAudio (landmarkId, language, audioUrl)
+    │   │   │   └── repository/
+    │   │   │
+    │   │   ├── ai/               # 외부 AI 호출만 담당 (도메인 패키지에 의존하지 않음)
+    │   │   │   ├── vision/       # PhotoVerificationService + OpenAI Vision 클라이언트
+    │   │   │   ├── llm/          # 매칭 설명, 해치 설명, 다국어 텍스트
+    │   │   │   ├── stt/          # Soniox 클라이언트 + 목표 문장 일치도 비교
+    │   │   │   ├── tts/          # 음성 해설 생성 (사전 생성용)
+    │   │   │   └── config/       # API 키, HTTP 클라이언트, 타임아웃
+    │   │   │
+    │   │   ├── storage/          # Supabase Storage 업로드 (인증 사진, 음성 파일)
+    │   │   ├── location/         # (2차) 좌표 거리 계산, 500m 이내 판정
+    │   │   ├── coupon/           # (2차) 제휴 쿠폰
+    │   │   │
+    │   │   └── common/
+    │   │       ├── response/     # ApiResponse
+    │   │       ├── exception/    # ErrorCode, 전역 예외 처리
+    │   │       ├── config/       # CORS(Vercel 도메인), Swagger
+    │   │       └── user/         # 사용자 식별 필터·리졸버 (3번 결정 후 구현)
+    │   │
+    │   └── resources
+    │       ├── application.yml
+    │       ├── application-local.yml   # Git 제외
+    │       └── db/migration/           # Flyway를 쓰는 경우 (V1__init.sql, V2__seed.sql ...)
+    │
+    └── test
+        └── java/{base-package}         # 도메인별 테스트, ai는 목 구현으로 테스트
 
 ---
 
